@@ -14,8 +14,12 @@ import {
   View,
   TouchableWithoutFeedback,
   WebView,
-  Dimensions
+  Dimensions,
+  Button,
+  TextInput,
+  BackHandler
 } from "react-native";
+import Modal from "react-native-modal";
 
 const baseUrl = "http://192.168.1.24:5000";
 
@@ -26,7 +30,9 @@ export default class App extends Component {
     forward: false,
     backward: false,
     left: false,
-    right: false
+    right: false,
+    textModalShow: false,
+    textToSend: ""
   };
   go = direction => {
     console.log(`Going...`);
@@ -38,12 +44,22 @@ export default class App extends Component {
     console.log(`Stopping...`);
     fetch(`${baseUrl}/stop`).then(() => {});
   };
+  toggleModal = () => {
+    this.setState({ textModalShow: !this.state.textModalShow });
+  };
+
+  sendText = () => {
+    console.log(`send text clicked ${this.state.textToSend}`);
+    fetch(`${baseUrl}/say?text="${this.state.textToSend}"`).then(() => {});
+    this.toggleModal();
+  };
   render() {
     return (
       <View style={styles.container}>
         <WebView
-          source={{ uri: "http://192.168.1.24:8082" }}
-          style={{ width: deviceWidth }}
+          source={{ uri: "http://192.168.1.24:8082/index.html" }}
+          style={{ width: deviceWidth, flex: 1 }}
+          scalesPageToFit={false}
         />
         <View style={styles.subContainer}>
           <View style={styles.row}>
@@ -88,6 +104,37 @@ export default class App extends Component {
             </TouchableWithoutFeedback>
           </View>
         </View>
+        <TouchableWithoutFeedback
+          onPress={() => this.setState({ textModalShow: true })}
+        >
+          <Text style={styles.textButton}>Text</Text>
+        </TouchableWithoutFeedback>
+        <Modal isVisible={this.state.textModalShow}>
+          <View style={styles.textModal}>
+            <Text style={styles.title}>Write Something!</Text>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                placeholder={"Here"}
+                autoFocus={true}
+                onChangeText={text =>
+                  this.setState({ textToSend: encodeURIComponent(text) })
+                }
+              />
+            </View>
+            <View style={styles.buttonsRow}>
+              <Button
+                style={styles.textModalButton}
+                title="Cancel"
+                onPress={this.toggleModal}
+              />
+              <Button
+                style={styles.textModalButton}
+                title="Send"
+                onPress={this.sendText}
+              />
+            </View>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -120,5 +167,35 @@ const styles = StyleSheet.create({
     textAlign: "center",
     textAlignVertical: "center",
     margin: 15
+  },
+  textButton: {
+    position: "absolute",
+    height: 30,
+    width: 40,
+    textAlign: "center",
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+    color: "#fff",
+    bottom: 20,
+    right: 20,
+    backgroundColor: "blue"
+  },
+  textModal: {
+    backgroundColor: "#fff",
+    flex: 1,
+    padding: 10
+  },
+  textModalButton: {
+    alignSelf: "flex-end"
+  },
+  buttonsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginHorizontal: 20,
+    marginBottom: 30
+  },
+  title: {
+    alignSelf: "center"
   }
 });

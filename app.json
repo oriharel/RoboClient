@@ -3,7 +3,6 @@
     "name": "RoboClient",
     "slug": "RoboClient",
     "privacy": "public",
-    "sdkVersion": "32.0.0",
     "platforms": [
       "ios",
       "android"

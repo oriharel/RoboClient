@@ -13,13 +13,12 @@ import {
   Text,
   View,
   TouchableWithoutFeedback,
-  WebView,
   Dimensions,
   Button,
-  TextInput,
-  BackHandler
+  TextInput
 } from "react-native";
 import Modal from "react-native-modal";
+import { WebView } from "react-native-webview";
 
 const baseUrl = "http://192.168.1.24:5000";
 

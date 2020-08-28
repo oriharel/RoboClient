@@ -31,13 +31,27 @@ export default class App extends Component {
     left: false,
     right: false,
     textModalShow: false,
-    textToSend: ""
+    textToSend: "",
+    camAngle: 75
   };
   go = direction => {
     console.log(`Going...`);
     this.setState({});
     fetch(`${baseUrl}/${direction}`).then(() => {});
   };
+
+  look = direction => {
+    console.log(`Looking ${direction}...`);
+    const addition = direction === "up" ? 10 : -10;
+    const newAngle = this.state.camAngle + addition;
+    this.setState({camAngle: newAngle});
+    fetch(`${baseUrl}/cameraSet/${newAngle}`).then(() => {});
+  };
+
+  lookCenter = ()=>{
+    this.setState({camAngle: 75});
+    fetch(`${baseUrl}/cameraSet/75`).then(() => {});
+  }
 
   stop = () => {
     console.log(`Stopping...`);
@@ -49,7 +63,17 @@ export default class App extends Component {
 
   sendText = () => {
     console.log(`send text clicked ${this.state.textToSend}`);
-    fetch(`${baseUrl}/say?text="${this.state.textToSend}"`).then(() => {});
+    // fetch(`${baseUrl}/speak?text="${this.state.textToSend}"`).then(() => {});
+    fetch(`${baseUrl}/speak`, {
+      method: "POST",
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({text: this.state.textToSend})
+    }).then((res) => {
+      console.log(`res from speak: ${JSON.stringify(res)}`)
+    });
     this.toggleModal();
   };
   render() {
@@ -57,10 +81,29 @@ export default class App extends Component {
       <View style={styles.container}>
         <WebView
           source={{ uri: "http://192.168.1.24:8082/index.html" }}
-          style={{ width: deviceWidth, flex: 1 }}
-          scalesPageToFit={false}
+          style={{ width: deviceWidth}}
+          scalesPageToFit={true}
         />
         <View style={styles.subContainer}>
+          <View style={styles.row}>
+            <TouchableWithoutFeedback
+                onPressIn={() => {
+                  this.look("up");
+                }}
+            >
+              <Text style={styles.camButton}>Up</Text>
+            </TouchableWithoutFeedback>
+            <TouchableWithoutFeedback onPress={this.lookCenter}>
+              <Text style={styles.camButton}>Reset</Text>
+            </TouchableWithoutFeedback>
+            <TouchableWithoutFeedback
+                onPressIn={() => {
+                  this.look("down");
+                }}
+            >
+              <Text style={styles.camButton}>Down</Text>
+            </TouchableWithoutFeedback>
+          </View>
           <View style={styles.row}>
             <TouchableWithoutFeedback
               onPressIn={() => {
@@ -116,7 +159,7 @@ export default class App extends Component {
                 placeholder={"Here"}
                 autoFocus={true}
                 onChangeText={text =>
-                  this.setState({ textToSend: encodeURIComponent(text) })
+                  this.setState({ textToSend: text })
                 }
               />
             </View>
@@ -158,8 +201,18 @@ const styles = StyleSheet.create({
     flexDirection: "row"
   },
   button: {
+    width: 70,
+    height: 70,
+    backgroundColor: "grey",
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+    textAlignVertical: "center",
+    margin: 15
+  },
+  camButton: {
     width: 100,
-    height: 100,
+    height: 30,
     backgroundColor: "grey",
     justifyContent: "center",
     alignItems: "center",
